@@ -11,7 +11,6 @@ import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:firebase_ui_oauth_oidc/firebase_ui_oauth_oidc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,6 +20,7 @@ import 'config.dart';
 import 'details_snap.dart';
 import 'firebase_options.dart';
 import 'home_page.dart';
+import 'l10n/app_localizations.dart';
 import 'oidc_eduid.dart';
 import 'profile/custom_profile_screen.dart';
 import 'settings.dart';
@@ -45,9 +45,9 @@ void main() async {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
-    FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+    FirebaseAnalytics.instance;
   }
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  FirebaseMessaging.instance;
 
   // await FirebaseAuth.instance.useAuthEmulator('localhost', 9099);
   FirebaseUIAuth.configureProviders([

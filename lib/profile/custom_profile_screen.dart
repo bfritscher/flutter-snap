@@ -89,7 +89,7 @@ class _AvailableProvidersRowState extends State<_AvailableProvidersRow> {
                   context: context,
                   provider: provider,
                 ).then((_) => widget.onProviderLinked()),
-                child: customProviderIcon(context, provider.providerId),
+                child: customProviderIcon(context, provider),
               )
             else
               TextButton(
@@ -97,7 +97,7 @@ class _AvailableProvidersRowState extends State<_AvailableProvidersRow> {
                   context: context,
                   provider: provider,
                 ).then((_) => widget.onProviderLinked()),
-                child: customProviderIcon(context, provider.providerId),
+                child: customProviderIcon(context, provider),
               )
           else
             AuthStateListener<OAuthController>(
@@ -245,7 +245,7 @@ class _LinkedProvidersRowState extends State<_LinkedProvidersRow> {
     }
   }
 
-  Widget buildProviderIcon(BuildContext context, String providerId) {
+  Widget buildProviderIcon(BuildContext context, AuthProvider provider) {
     final isCupertino = CupertinoUserInterfaceLevel.maybeOf(context) != null;
     const animationDuration = Duration(milliseconds: 150);
     const curve = Curves.easeOut;
@@ -253,7 +253,7 @@ class _LinkedProvidersRowState extends State<_LinkedProvidersRow> {
     VoidCallback? unlink;
 
     if (isEditing) {
-      unlink = () => _unlinkProvider(context, providerId);
+      unlink = () => _unlinkProvider(context, provider.providerId);
     }
 
     return Stack(
@@ -261,14 +261,14 @@ class _LinkedProvidersRowState extends State<_LinkedProvidersRow> {
         SizedBox(
           width: size,
           height: size,
-          child: unlinkingProvider == providerId
+          child: unlinkingProvider == provider.providerId
               ? LoadingIndicator(
                   size: size - (size / 4),
                   borderWidth: 1,
                 )
-              : customProviderIcon(context, providerId),
+              : customProviderIcon(context, provider),
         ),
-        if (unlinkingProvider != providerId)
+        if (unlinkingProvider != provider.providerId)
           AnimatedOpacity(
             duration: animationDuration,
             opacity: isEditing ? 1 : 0,
@@ -305,7 +305,7 @@ class _LinkedProvidersRowState extends State<_LinkedProvidersRow> {
     Widget child = Row(
       children: [
         for (var provider in widget.providers)
-          buildProviderIcon(context, provider.providerId)
+          buildProviderIcon(context, provider)
       ]
           .map((e) => [e, const SizedBox(width: 8)])
           .expand((element) => element)

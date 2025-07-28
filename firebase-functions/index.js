@@ -57,7 +57,7 @@ async function transformImage(image, title="") {
   formData.append("text_prompts[1][weight]", -1);
 
   const response = await fetch(
-      "https://api.stability.ai/v1/generation/stable-diffusion-v1-6/image-to-image",
+      "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image",
       {
         method: "POST",
         headers: {

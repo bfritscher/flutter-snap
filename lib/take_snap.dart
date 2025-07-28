@@ -5,11 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'l10n/app_localizations.dart';
 import 'widgets.dart';
 
 class TakeSnapScreen extends StatelessWidget {
@@ -66,8 +66,8 @@ class _TakeSnapState extends State<TakeSnap> {
         sourcePath: _pickedImage!.path,
         compressFormat: ImageCompressFormat.jpg,
         compressQuality: 100,
-        maxHeight: 512,
-        maxWidth: 512,
+        maxHeight: 1024,
+        maxWidth: 1024,
         aspectRatio: const CropAspectRatio(ratioX: 1.0, ratioY: 1.0),
         uiSettings: [
           AndroidUiSettings(
