@@ -16,68 +16,81 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.settings,
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+        title: Text(
+          AppLocalizations.of(context)!.settings,
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        ),
         leading: BackButton(
-            onPressed: () {
-              if (kIsWeb) {
-                context.go('/profile');
-              } else {
-                context.pop();
-              }
-            },
-            color: Theme.of(context).colorScheme.onPrimary),
+          onPressed: () {
+            if (kIsWeb) {
+              context.go('/profile');
+            } else {
+              context.pop();
+            }
+          },
+          color: Theme.of(context).colorScheme.onPrimary,
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: SettingsList(
         sections: [
           SettingsSection(
-              title: Text(AppLocalizations.of(context)!.common),
-              tiles: [
-                SettingsTile(
-                  leading: const Icon(Icons.language),
-                  title: Text(AppLocalizations.of(context)!.language),
-                  value: Text(AppLocalizations.of(context)!
-                      .selectLocale(settings.locale.languageCode)),
-                  onPressed: (context) async {
-                    final locale = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SettingsListPickerScreen(
-                                    title:
-                                        AppLocalizations.of(context)!.language,
-                                    options: {
-                                      for (final item in ['fr', 'en'])
-                                        item: AppLocalizations.of(context)!
-                                            .selectLocale(item)
-                                    })));
-                    if (locale != null) {
-                      settings.locale = Locale(locale);
-                    }
-                  },
+            title: Text(AppLocalizations.of(context)!.common),
+            tiles: [
+              SettingsTile(
+                leading: const Icon(Icons.language),
+                title: Text(AppLocalizations.of(context)!.language),
+                value: Text(
+                  AppLocalizations.of(context)!
+                      .selectLocale(settings.locale.languageCode),
                 ),
-                SettingsTile(
-                  leading: const Icon(Icons.dark_mode),
-                  title: Text(AppLocalizations.of(context)!.theme),
-                  description: Text(AppLocalizations.of(context)!
-                      .selectTheme(settings.themeMode.name)),
-                  onPressed: (context) async {
-                    final themeMode = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => SettingsListPickerScreen(
-                                    title: AppLocalizations.of(context)!.theme,
-                                    options: {
-                                      for (final item in ThemeMode.values)
-                                        item.name: AppLocalizations.of(context)!
-                                            .selectTheme(item.name)
-                                    })));
-                    if (themeMode != null) {
-                      settings.themeMode = themeModeFromString(themeMode);
-                    }
-                  },
+                onPressed: (context) async {
+                  final String? locale = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute<String>(
+                      builder: (context) => SettingsListPickerScreen(
+                        title: AppLocalizations.of(context)!.language,
+                        options: {
+                          for (final item in ['fr', 'en'])
+                            item: AppLocalizations.of(context)!
+                                .selectLocale(item),
+                        },
+                      ),
+                    ),
+                  );
+                  if (locale != null) {
+                    settings.locale = Locale(locale);
+                  }
+                },
+              ),
+              SettingsTile(
+                leading: const Icon(Icons.dark_mode),
+                title: Text(AppLocalizations.of(context)!.theme),
+                description: Text(
+                  AppLocalizations.of(context)!
+                      .selectTheme(settings.themeMode.name),
                 ),
-              ]),
+                onPressed: (context) async {
+                  final String? themeMode = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute<String>(
+                      builder: (context) => SettingsListPickerScreen(
+                        title: AppLocalizations.of(context)!.theme,
+                        options: {
+                          for (final item in ThemeMode.values)
+                            item.name: AppLocalizations.of(context)!
+                                .selectTheme(item.name),
+                        },
+                      ),
+                    ),
+                  );
+                  if (themeMode != null) {
+                    settings.themeMode = themeModeFromString(themeMode);
+                  }
+                },
+              ),
+            ],
+          ),
         ],
       ),
     );

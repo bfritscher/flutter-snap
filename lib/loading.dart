@@ -24,24 +24,29 @@ class SquareTile extends StatelessWidget {
 
   final AnimationController animationController;
 
-  const SquareTile(
-      {super.key,
-      required this.squareType,
-      this.maxSide = 100,
-      this.minSide = 10,
-      required this.animationController});
+  const SquareTile({
+    super.key,
+    required this.squareType,
+    this.maxSide = 100,
+    this.minSide = 10,
+    required this.animationController,
+  });
 
   @override
   Widget build(BuildContext context) {
-//    timeDilation = 1; // change it to slow down animations while debugging
-    var seq = TweenSequence([
+    //    timeDilation = 1; // change it to slow down animations while debugging
+    final seq = TweenSequence<double>([
       TweenSequenceItem(
-          tween: Tween<double>(begin: maxSide, end: minSide), weight: 0.5),
+        tween: Tween<double>(begin: maxSide, end: minSide),
+        weight: 0.5,
+      ),
       TweenSequenceItem(
-          tween: Tween<double>(begin: minSide, end: maxSide), weight: 0.8),
+        tween: Tween<double>(begin: minSide, end: maxSide),
+        weight: 0.8,
+      ),
     ]);
 
-    var squareSizeChangeTweenAnimation = seq.animate(
+    final squareSizeChangeTweenAnimation = seq.animate(
       CurvedAnimation(
         parent: animationController,
         curve: Interval(
@@ -55,7 +60,7 @@ class SquareTile extends StatelessWidget {
     return AnimatedBuilder(
       animation: squareSizeChangeTweenAnimation,
       builder: (context, child) {
-        var side = squareSizeChangeTweenAnimation.value;
+        final side = squareSizeChangeTweenAnimation.value;
         return Expanded(
           child: SizedBox(
             height: maxSide,
@@ -74,12 +79,12 @@ class SquareTile extends StatelessWidget {
   }
 
   Color increaseColorLightness(Color color, double increment) {
-    var hslColor = HSLColor.fromColor(color);
-    var newValue = min(max(hslColor.lightness + increment, 0.0), 1.0);
+    final hslColor = HSLColor.fromColor(color);
+    final newValue = min(max(hslColor.lightness + increment, 0.0), 1.0);
     return hslColor.withLightness(newValue).toColor();
   }
 
-  Color getColor(context) {
+  Color getColor(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     if (squareType == SquareType.first) {
       return primary;
@@ -127,8 +132,10 @@ class _LoadingAnimationState extends State<LoadingAnimation>
   void initState() {
     super.initState();
     animationController = AnimationController(
-        vsync: this, value: 0, duration: const Duration(milliseconds: 2000))
-      ..repeat();
+      vsync: this,
+      value: 0,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
   }
 
   @override
@@ -152,11 +159,13 @@ class _LoadingAnimationState extends State<LoadingAnimation>
                   animationController: animationController,
                 ),
                 SquareTile(
-                    squareType: SquareType.second,
-                    animationController: animationController),
+                  squareType: SquareType.second,
+                  animationController: animationController,
+                ),
                 SquareTile(
-                    squareType: SquareType.third,
-                    animationController: animationController),
+                  squareType: SquareType.third,
+                  animationController: animationController,
+                ),
               ],
             ),
           ),
@@ -165,14 +174,17 @@ class _LoadingAnimationState extends State<LoadingAnimation>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SquareTile(
-                    squareType: SquareType.second,
-                    animationController: animationController),
+                  squareType: SquareType.second,
+                  animationController: animationController,
+                ),
                 SquareTile(
-                    squareType: SquareType.third,
-                    animationController: animationController),
+                  squareType: SquareType.third,
+                  animationController: animationController,
+                ),
                 SquareTile(
-                    squareType: SquareType.fourth,
-                    animationController: animationController),
+                  squareType: SquareType.fourth,
+                  animationController: animationController,
+                ),
               ],
             ),
           ),
@@ -181,17 +193,20 @@ class _LoadingAnimationState extends State<LoadingAnimation>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SquareTile(
-                    squareType: SquareType.third,
-                    animationController: animationController),
+                  squareType: SquareType.third,
+                  animationController: animationController,
+                ),
                 SquareTile(
-                    squareType: SquareType.fourth,
-                    animationController: animationController),
+                  squareType: SquareType.fourth,
+                  animationController: animationController,
+                ),
                 SquareTile(
-                    squareType: SquareType.fifth,
-                    animationController: animationController),
+                  squareType: SquareType.fifth,
+                  animationController: animationController,
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

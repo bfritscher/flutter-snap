@@ -1,30 +1,36 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:snap/main.dart';
+import 'package:snap/loading.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  testWidgets('LoadingAnimation renders and animates all nine tiles', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: SizedBox.square(dimension: 300, child: LoadingAnimation()),
+        ),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.byType(SquareTile), findsNWidgets(9));
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    final firstAnimatedSquare = find.descendant(
+      of: find.byType(SquareTile).first,
+      matching: find.byType(Container),
+    );
+    final initialWidth = tester
+        .widget<Container>(firstAnimatedSquare)
+        .constraints!
+        .maxWidth;
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final animatedWidth = tester
+        .widget<Container>(firstAnimatedSquare)
+        .constraints!
+        .maxWidth;
+    expect(animatedWidth, lessThan(initialWidth));
   });
 }

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -48,14 +49,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String selectLocale(String choice) {
-    String _temp0 = intl.Intl.selectLogic(
-      choice,
-      {
-        'fr': 'Français',
-        'en': 'English',
-        'other': '',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(choice, {
+      'fr': 'Français',
+      'en': 'English',
+      'other': '',
+    });
     return '$_temp0';
   }
 
@@ -73,15 +71,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String selectTheme(String choice) {
-    String _temp0 = intl.Intl.selectLogic(
-      choice,
-      {
-        'light': 'Light',
-        'dark': 'Dark',
-        'system': 'System',
-        'other': '',
-      },
-    );
+    String _temp0 = intl.Intl.selectLogic(choice, {
+      'light': 'Light',
+      'dark': 'Dark',
+      'system': 'System',
+      'other': '',
+    });
     return '$_temp0';
   }
 

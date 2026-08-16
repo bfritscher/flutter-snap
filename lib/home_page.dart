@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' show max;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,10 +6,9 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import 'l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import 'l10n/app_localizations.dart';
 import 'loading.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -32,49 +32,61 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  final remoteConfig = FirebaseRemoteConfig.instance;
+  final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
+  StreamSubscription<RemoteConfigUpdate>? _remoteConfigSubscription;
 
   bool _showBanner = false;
   String _bannerText = '';
 
-  Future<void> initRemoteConfig() async {
-    print('Remote config init');
-    await remoteConfig.setConfigSettings(RemoteConfigSettings(
-      fetchTimeout: const Duration(minutes: 1),
-      minimumFetchInterval: const Duration(hours: 1),
-    ));
-    await remoteConfig.setDefaults(const {
+  Future<void> _initRemoteConfig() async {
+    debugPrint('Remote config init');
+    await _remoteConfig.setConfigSettings(
+      RemoteConfigSettings(
+        fetchTimeout: const Duration(minutes: 1),
+        minimumFetchInterval: const Duration(hours: 1),
+      ),
+    );
+    await _remoteConfig.setDefaults(const {
       'show_banner': false,
       'banner_text': '',
     });
-    await remoteConfig.fetchAndActivate();
+    await _remoteConfig.fetchAndActivate();
+    if (!mounted) return;
     setState(() {
-      _showBanner = remoteConfig.getBool('show_banner');
-      _bannerText = remoteConfig.getString('banner_text');
+      _showBanner = _remoteConfig.getBool('show_banner');
+      _bannerText = _remoteConfig.getString('banner_text');
     });
-    print('Remote config listener');
+    debugPrint('Remote config listener');
     if (!kIsWeb) {
       // not supported on web
-      remoteConfig.onConfigUpdated.listen((event) async {
-        print('Remote config updated');
-        await remoteConfig.activate();
+      _remoteConfigSubscription = _remoteConfig.onConfigUpdated.listen((
+        event,
+      ) async {
+        debugPrint('Remote config updated');
+        await _remoteConfig.activate();
+        if (!mounted) return;
         setState(() {
-          _showBanner = remoteConfig.getBool('show_banner');
-          _bannerText = remoteConfig.getString('banner_text');
+          _showBanner = _remoteConfig.getBool('show_banner');
+          _bannerText = _remoteConfig.getString('banner_text');
         });
-      }, onError: (error) => print('Remote config error: ${error.toString()}'));
+      }, onError: (Object error) => debugPrint('Remote config error: $error'));
     }
   }
 
   @override
   void initState() {
     super.initState();
-    initRemoteConfig();
+    unawaited(_initRemoteConfig());
   }
 
-  void _incrementCounter(context) {
-    FirebaseAnalytics.instance
-        .logEvent(name: 'counter_incremented', parameters: null);
+  @override
+  void dispose() {
+    unawaited(_remoteConfigSubscription?.cancel());
+    super.dispose();
+  }
+
+  void _incrementCounter(BuildContext context) {
+    unawaited(FirebaseAnalytics.instance.logEvent(name: 'counter_incremented'));
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
@@ -85,14 +97,15 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     ScaffoldMessenger.of(context).showMaterialBanner(
       MaterialBanner(
-          content: Text(AppLocalizations.of(context)!.nItems(_counter)),
-          actions: [
-            TextButton(
-              child: Text(AppLocalizations.of(context)!.ok),
-              onPressed: () =>
-                  ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
-            ),
-          ]),
+        content: Text(AppLocalizations.of(context)!.nItems(_counter)),
+        actions: [
+          TextButton(
+            child: Text(AppLocalizations.of(context)!.ok),
+            onPressed: () =>
+                ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -106,45 +119,49 @@ class _MyHomePageState extends State<MyHomePage> {
     // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-          // TRY THIS: Try changing the color here to a specific color (to
-          // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-          // change color while the other colors stay the same.
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
-          title: Text(widget.title,
-              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
-          actions: [
-            MenuAnchor(
-              builder: (context, controller, child) {
-                return IconButton(
-                  icon: const Icon(Icons.more_vert),
-                  style: ButtonStyle(
-                    foregroundColor: WidgetStateProperty.all<Color>(
-                        Theme.of(context).colorScheme.onPrimary),
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(
+          widget.title,
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        ),
+        actions: [
+          MenuAnchor(
+            builder: (context, controller, child) {
+              return IconButton(
+                icon: const Icon(Icons.more_vert),
+                style: ButtonStyle(
+                  foregroundColor: WidgetStateProperty.all<Color>(
+                    Theme.of(context).colorScheme.onPrimary,
                   ),
-                  tooltip: 'Show menu',
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                );
-              },
-              menuChildren: [
-                MenuItemButton(
-                  onPressed: () => _incrementCounter(context),
-                  child: Text(AppLocalizations.of(context)!.increment),
                 ),
-                MenuItemButton(
-                  onPressed: () => throw Exception('Test Exception!'),
-                  child: const Text('Throw Test Exception'),
-                ),
-              ],
-            ),
-          ]),
+                tooltip: 'Show menu',
+                onPressed: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+              );
+            },
+            menuChildren: [
+              MenuItemButton(
+                onPressed: () => _incrementCounter(context),
+                child: Text(AppLocalizations.of(context)!.increment),
+              ),
+              MenuItemButton(
+                onPressed: () => throw Exception('Test Exception!'),
+                child: const Text('Throw Test Exception'),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -173,11 +190,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       _bannerText,
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineMedium!
+                      style: Theme.of(context).textTheme.headlineMedium!
                           .copyWith(
-                              color: Theme.of(context).colorScheme.onSecondary),
+                            color: Theme.of(context).colorScheme.onSecondary,
+                          ),
                     ),
                   ),
                 ),
@@ -196,58 +212,60 @@ class StoriesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('snaps')
-            .orderBy('createdAt', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          return Column(
-            children: [
-              Expanded(
-                child: LayoutBuilder(builder: (context, constraints) {
+      stream: FirebaseFirestore.instance
+          .collection('snaps')
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        return Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
                   return GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisSpacing: 0,
                       mainAxisSpacing: 0,
                       crossAxisCount: max(constraints.maxWidth ~/ 340, 2),
                     ),
-                    itemCount:
-                        snapshot.data == null ? 0 : snapshot.data!.docs.length,
+                    itemCount: snapshot.data?.docs.length ?? 0,
                     itemBuilder: (context, index) {
-                      final items =
-                          snapshot.data == null ? [] : snapshot.data!.docs;
-                      final item = items[index];
-                      if (item.get('processed')) {
+                      final item = snapshot.data!.docs[index];
+                      final itemData = item.data();
+                      if (itemData['processed'] == true) {
                         return GestureDetector(
-                            onTap: () {
-                              if (kIsWeb) {
-                                context.go('/snap/${item.id}', extra: item);
-                              } else {
-                                context.push('/snap/${item.id}', extra: item);
-                              }
-                            },
-                            child: Hero(
-                              tag: item.id,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: NetworkImage(
-                                      item.get('url'),
-                                    ),
+                          onTap: () {
+                            if (kIsWeb) {
+                              context.go('/snap/${item.id}', extra: item);
+                            } else {
+                              context.push('/snap/${item.id}', extra: item);
+                            }
+                          },
+                          child: Hero(
+                            tag: item.id,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: NetworkImage(
+                                    itemData['url'] as String,
                                   ),
                                 ),
                               ),
-                            ));
+                            ),
+                          ),
+                        );
                       } else {
                         return const LoadingAnimation();
                       }
                     },
                   );
-                }),
+                },
               ),
-            ],
-          );
-        });
+            ),
+          ],
+        );
+      },
+    );
   }
 }
