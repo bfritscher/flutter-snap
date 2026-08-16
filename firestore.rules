@@ -1,7 +1,36 @@
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write;
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidSnapCreate() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+        'createdAt',
+        'expireAt',
+        'fileRef',
+        'processed',
+        'title',
+        'userId',
+      ])
+        && data.userId == request.auth.uid
+        && data.fileRef is string
+        && data.fileRef.matches(
+          'snaps/' + request.auth.uid + '/[^/]+[.]jpg'
+        )
+        && data.title is string
+        && data.title.size() <= 100
+        && data.processed == false
+        && data.createdAt is timestamp
+        && data.expireAt is timestamp;
+    }
+
+    match /snaps/{snapId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidSnapCreate();
+      allow delete: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
     }
   }
 }

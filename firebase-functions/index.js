@@ -1,7 +1,7 @@
 /**
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
-const admin = require("firebase-admin");
+const {getApps, initializeApp} = require("firebase-admin/app");
 const {onRequest} = require("firebase-functions/v2/https");
 const {
   onDocumentDeleted,
@@ -11,10 +11,8 @@ const {getStorage, getDownloadURL} = require("firebase-admin/storage");
 const {getFirestore} = require("firebase-admin/firestore");
 const {logger} = require("firebase-functions");
 
-if (!admin.apps.length) {
-  admin.initializeApp();
-} else {
-  admin.app(); // Use the already initialized default app
+if (getApps().length === 0) {
+  initializeApp();
 }
 
 // Create and deploy your first functions
@@ -32,13 +30,10 @@ exports.onSnapDeleted = onDocumentDeleted("snaps/{snapId}", (event) => {
   });
 });
 
-const fetch = require("node-fetch");
-const FormData = require("form-data");
-
 async function transformImage(image, title="") {
   title = title.slice(0, 20);
   const formData = new FormData();
-  formData.append("init_image", image);
+  formData.append("init_image", new Blob([image]), "snap.jpg");
   formData.append("init_image_mode", "IMAGE_STRENGTH");
   formData.append("image_strength", 0.45);
   formData.append("steps", 30);
@@ -61,7 +56,6 @@ async function transformImage(image, title="") {
       {
         method: "POST",
         headers: {
-          ...formData.getHeaders(),
           Accept: "application/json",
           Authorization: `Bearer ${process.env.STABILITY_API_KEY}`,
         },
@@ -77,6 +71,20 @@ async function transformImage(image, title="") {
   image = responseJSON.artifacts[0];
   console.log("received image", image.seed);
   return Buffer.from(image.base64, "base64");
+}
+
+function escapeHtml(value) {
+  const characters = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;",
+  };
+  return String(value).replace(
+      /[&<>"']/g,
+      (character) => characters[character],
+  );
 }
 
 exports.onSnapCreated = onDocumentCreated({
@@ -110,12 +118,14 @@ exports.snap = onRequest(async (req, res) => {
       .where("processed", "==", true)
       .orderBy("createdAt", "desc")
       .get();
-  const posts = snapshot.docs.map(
-      (doc) => `<div
+  const posts = snapshot.docs.map((doc) => {
+    const imageUrl = escapeHtml(doc.get("url"));
+    const title = escapeHtml(doc.get("title"));
+    return `<div
   class="post"
-  style="background-image:url('${doc.get("url")}')">
-  <h2>${doc.get("title")}</h2></div>`,
-  );
+  style="background-image:url('${imageUrl}')">
+  <h2>${title}</h2></div>`;
+  });
   res.send(`
     <!doctype html>
     <head>
